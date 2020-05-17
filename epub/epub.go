@@ -82,7 +82,7 @@ type Metadata struct {
 		Text    string `xml:",chardata"`
 		Content string `xml:"content,attr"`
 		Name    string `xml:"name,attr"`
-	} `xml:"meta"`
+	} `xml:"metadata>meta"`
 	Event       []struct {
 		Name string `xml:"event,attr"`
 		Date string `xml:",innerxml"`
