@@ -1,6 +1,7 @@
 package epub
 
 import (
+	"log"
 	"os"
 	"testing"
 )
@@ -10,6 +11,11 @@ const expFormat = "Expected: %v, but got: %v\n"
 type containerTest struct {
 	*testing.T
 	c Container
+}
+
+type readerTest struct {
+	*testing.T
+	r Reader
 }
 
 func TestOpenReader(t *testing.T) {
@@ -22,6 +28,9 @@ func TestOpenReader(t *testing.T) {
 	t.Run("ReadCloser", func(t *testing.T) {
 		tt := containerTest{t, r.Container}
 		tt.TestContainer()
+
+		rt := readerTest{t, r.Reader}
+		rt.TestCoverBase64()
 	})
 }
 
@@ -55,6 +64,32 @@ func (ct *containerTest) TestContainer() {
 	})
 }
 
+func (rt *readerTest) TestCoverBase64() {
+	reader := rt.r
+
+	coverbase64, err := reader.GetCoverBase64()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("begining")
+	log.Printf(coverbase64)
+
+	if len(coverbase64) == 0 {
+		//should not be empty
+	}
+}
+
+func (ct *containerTest) TestCover() {
+	packageData := ct.c.Rootfiles[0]
+	coverName := packageData.getCoverName()
+
+	exp := "@public@vhost@g@gutenberg@html@files@28885@28885-h@images@cover.jpg"
+	if coverName != exp {
+		ct.Errorf(expFormat, exp, coverName)
+	}
+}
+
 func (ct *containerTest) TestMetadata() {
 	meta := ct.c.Rootfiles[0].Metadata
 
@@ -66,6 +101,16 @@ func (ct *containerTest) TestMetadata() {
 	exp = "Lewis Carroll"
 	if meta.Creator != exp {
 		ct.Errorf(expFormat, exp, meta.Creator)
+	}
+
+	exp = "item1"
+	if meta.Meta[0].Content != exp {
+		ct.Errorf(expFormat, exp, meta.Meta[0].Content)
+	}
+
+	exp = "cover"
+	if meta.Meta[0].Name != exp {
+		ct.Errorf(expFormat, exp, meta.Meta[0].Name)
 	}
 }
 

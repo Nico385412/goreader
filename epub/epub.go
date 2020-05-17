@@ -6,12 +6,17 @@ package epub
 
 import (
 	"archive/zip"
+	"bufio"
 	"bytes"
+	"encoding/base64"
 	"encoding/xml"
 	"errors"
 	"io"
+	"io/ioutil"
+	"log"
 	"os"
 	"path"
+	"regexp"
 )
 
 const containerPath = "META-INF/container.xml"
@@ -78,12 +83,12 @@ type Metadata struct {
 	Publisher   string `xml:"metadata>publisher"`
 	Subject     string `xml:"metadata>subject"`
 	Description string `xml:"metadata>description"`
-	Meta     []struct {
+	Meta        []struct {
 		Text    string `xml:",chardata"`
 		Content string `xml:"content,attr"`
 		Name    string `xml:"name,attr"`
 	} `xml:"metadata>meta"`
-	Event       []struct {
+	Event []struct {
 		Name string `xml:"event,attr"`
 		Date string `xml:",innerxml"`
 	} `xml:"metadata>date"`
@@ -283,4 +288,62 @@ func (item *Item) Open() (r io.ReadCloser, err error) {
 // Close closes the epub file, rendering it unusable for I/O.
 func (rc *ReadCloser) Close() {
 	rc.f.Close()
+}
+
+// Get Cover Name
+func (p *Package) getCoverName() string {
+	coverName := "cover"
+	var coverID = ""
+
+	for i := range p.Metadata.Meta {
+		if p.Metadata.Meta[i].Name == coverName {
+			coverID = p.Metadata.Meta[i].Content
+			break
+		}
+	}
+
+	if len(coverID) == 0 {
+		log.Printf("Metadata does not have a meta element with attribute name equal to cover")
+		return ""
+	}
+
+	var coverFileName = ""
+
+	for i := range p.Manifest.Items {
+		if p.Manifest.Items[i].ID == coverID {
+			coverFileName = p.Manifest.Items[i].HREF
+			break
+		}
+	}
+
+	if len(coverFileName) == 0 {
+		log.Printf("Manifest does not have a item element with id name equal to %s, refered in MetaData", coverID)
+		return ""
+	}
+
+	return coverFileName
+}
+
+func (r *Reader) GetCoverBase64() (string, error) {
+	coverName := r.Container.Rootfiles[0].getCoverName()
+
+	if len(coverName) == 0 {
+		log.Printf("Cannot open cover, cover is not referenced")
+	}
+
+	var regexCompiler = regexp.MustCompile(`(.*\/)`)
+	relativePath := regexCompiler.FindString(r.Rootfiles[0].FullPath)
+
+	imageFile, err := r.files[relativePath+coverName].Open()
+	if err != nil {
+		return "", err
+	}
+
+	defer imageFile.Close()
+
+	reader := bufio.NewReader(imageFile)
+	content, _ := ioutil.ReadAll(reader)
+	encoded := base64.StdEncoding.EncodeToString(content)
+
+	return encoded, nil
 }
