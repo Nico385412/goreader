@@ -78,6 +78,11 @@ type Metadata struct {
 	Publisher   string `xml:"metadata>publisher"`
 	Subject     string `xml:"metadata>subject"`
 	Description string `xml:"metadata>description"`
+	Meta     []struct {
+		Text    string `xml:",chardata"`
+		Content string `xml:"content,attr"`
+		Name    string `xml:"name,attr"`
+	} `xml:"meta"`
 	Event       []struct {
 		Name string `xml:"event,attr"`
 		Date string `xml:",innerxml"`
