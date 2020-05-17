@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/taylorskalyo/goreader/epub"
+	"github.com/nico385412/goreader/epub"
 )
 
 func main() {

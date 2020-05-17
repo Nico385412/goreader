@@ -2,7 +2,7 @@ package main
 
 import (
 	termbox "github.com/nsf/termbox-go"
-	"github.com/taylorskalyo/goreader/epub"
+	"github.com/nico385412/goreader/epub"
 )
 
 // app is used to store the current state of the application.
