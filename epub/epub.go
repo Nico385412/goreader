@@ -360,7 +360,7 @@ func (r *Reader) GetCoverBytes() ([]byte, error) {
 
 	imageFile, err := r.files[relativePath+coverName].Open()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	defer imageFile.Close()

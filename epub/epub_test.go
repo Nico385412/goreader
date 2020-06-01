@@ -31,6 +31,7 @@ func TestOpenReader(t *testing.T) {
 
 		rt := readerTest{t, r.Reader}
 		rt.TestCoverBase64()
+		rt.TestCoverBytes()
 	})
 }
 
@@ -64,6 +65,19 @@ func (ct *containerTest) TestContainer() {
 	})
 }
 
+func (rt *readerTest) TestCoverBytes() {
+	reader := rt.r
+
+	coverbytes, err := reader.GetCoverBytes()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(coverbytes) == 0 {
+		log.Fatal("should not be empty")
+	}
+}
+
 func (rt *readerTest) TestCoverBase64() {
 	reader := rt.r
 
@@ -72,11 +86,8 @@ func (rt *readerTest) TestCoverBase64() {
 		log.Fatal(err)
 	}
 
-	log.Printf("begining")
-	log.Printf(coverbase64)
-
 	if len(coverbase64) == 0 {
-		//should not be empty
+		log.Fatal("should not be empty")
 	}
 }
 
