@@ -347,3 +347,24 @@ func (r *Reader) GetCoverBase64() (string, error) {
 
 	return encoded, nil
 }
+
+func (r *Reader) GetCoverBytes() ([]byte, error) {
+	coverName := r.Container.Rootfiles[0].getCoverName()
+
+	if len(coverName) == 0 {
+		log.Printf("Cannot open cover, cover is not referenced")
+	}
+
+	var regexCompiler = regexp.MustCompile(`(.*\/)`)
+	relativePath := regexCompiler.FindString(r.Rootfiles[0].FullPath)
+
+	imageFile, err := r.files[relativePath+coverName].Open()
+	if err != nil {
+		return "", err
+	}
+
+	defer imageFile.Close()
+
+	reader := bufio.NewReader(imageFile)
+	return ioutil.ReadAll(reader)
+}
